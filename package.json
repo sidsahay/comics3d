@@ -19,6 +19,7 @@
   "dependencies": {
     "three": "^0.101.1",
     "three-collada-loader": "0.0.1",
+    "three-fly-controls": "^1.1.0",
     "three-gltf-loader": "^1.101.0",
     "threejs-orbit-controls": "^1.0.3"
   },

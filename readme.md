@@ -17,3 +17,8 @@
 * Install `npm` (usually just means installing `Node.js`) and run `npm install` in the project root
 * Install `http-server` for convenience (optional)
 * Run `npx webpack` and then access `index.html` from the browser (remember to serve it via `http-server` (just run that in the root directory) or some other server because stuff won't load otherwise)
+
+## Notes (WIP)
+* To match cameras in `Blender` set the camera sensor thing to `Vertical` and change the two sensor size values to the same value.
+* `Three.js` docs recommend enabling `physicallyCorrectLights` and `gammaOutput`, and setting the `gammaFactor` to `2.2`.
+* For shadows enable shadowmaps in the renderer, set lights to cast shadows, and set objects to cast shadows and receive shadows.

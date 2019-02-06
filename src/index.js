@@ -1,52 +1,15 @@
 import * as THREE from "three";
 import * as THREEGLTFLoader from "three-gltf-loader";
 import * as THREEOrbitControls from "threejs-orbit-controls";
+import * as THREEFlyControls from "three-fly-controls"
 
-function init() {
-    let container = document.createElement('div');
-    document.body.appendChild(container);
-
-    let camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.set(15, 15, 15);
-
-    let controls = new THREEOrbitControls(camera);
-    controls.target.set(0, 0, 0);
-    controls.update();
-
-    let scene = new THREE.Scene();
-    //scene.overrideMaterial = new THREE.MeshBasicMaterial(0xffffff);
-
-    let light = new THREE.PointLight(0xffffff);
-    light.position.set(0, 20, 0);
-    scene.add(light);
-
-    let loader = new THREEGLTFLoader();
-    loader.load('models/house.gltf'
-        , function (gltf) {
-            scene.add(gltf.scene);
-        }
-        , undefined
-        , function (e) {
-            console.error(e);
-        }
-    );
-
-    let renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.gammaOutput = true;
-
-    container.appendChild(renderer.domElement);
-
-    window.addEventListener('resize', onWindowResize, false);
-
-    return {renderer: renderer, scene: scene, camera: camera, controls: controls};
-}
-
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+function min(a, b) {
+    if (a < b) {
+        return a;
+    }
+    else {
+        return b;
+    }
 }
 
 function renderFrames(renderObj) {
@@ -57,5 +20,63 @@ function renderFrames(renderObj) {
     });
 }
 
-let renderObj = init();
-renderFrames(renderObj);
+function initSystems(loadResult) {
+    let container = document.createElement('div');
+    document.body.appendChild(container);
+
+    let scene = new THREE.Scene();
+    scene.add(loadResult.scene);
+
+    let camera = loadResult.cameras[0];
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    console.log(camera);
+    
+    let renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.gammaOutput = true;
+    renderer.gammaFactor = 2.2;
+    renderer.toneMapping = THREE.LinearToneMapping;
+    renderer.physicallyCorrectLights = true;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    container.appendChild(renderer.domElement);
+
+    let clock = new THREE.Clock;
+    clock.getDelta();
+
+    return { renderer: renderer, scene: scene, camera: camera, clock: clock };
+}
+
+let loadModel = new Promise((resolve, reject) => {
+    let loader = new THREEGLTFLoader();
+    loader.load('models/test.gltf'
+        , function (result) {
+            result.scene.traverse((obj) => {
+                if (obj.isMesh) {
+                    obj.castShadow = true;
+                    obj.receiveShadow = true;
+                }
+
+                if (obj.isLight) {
+                    obj.castShadow = true;
+                }
+            });
+
+            resolve(result);
+        }
+        , undefined
+        , function (e) {
+            console.error(e);
+            reject("Bah, loader threw an error");
+        }
+    );
+});
+
+loadModel
+    .then(initSystems)
+    .then(renderFrames);
+
+
